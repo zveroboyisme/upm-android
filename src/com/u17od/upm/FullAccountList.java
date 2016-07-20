@@ -44,7 +44,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.TextView;
@@ -70,7 +69,7 @@ public class FullAccountList extends AccountsList {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         registerForContextMenu(getListView());
-        autoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.autocomplete);
+        autoCompleteTextView = (AutoCompleteTextView) findViewById(R.id.accountSearch);
         populateAccountList();
     }
 
@@ -103,7 +102,13 @@ public class FullAccountList extends AccountsList {
             setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, getPasswordDatabase().getAccountNames()));
             autoCompleteTextView.setAdapter(
                 new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, getPasswordDatabase().getAccountNames()));
-            autoCompleteTextView.setOnItemClickListener(this);
+            autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    FullAccountList.this.onItemClick(parent, view, position, id);
+                    autoCompleteTextView.setVisibility(View.GONE);
+                }
+            });
         }
     }
 
@@ -164,6 +169,7 @@ public class FullAccountList extends AccountsList {
         switch (item.getItemId()) {
             case R.id.search:
                 onSearchRequested();
+                showSearch(item);
                 optionConsumed = true;
                 break;
             case R.id.add:
@@ -232,6 +238,16 @@ public class FullAccountList extends AccountsList {
         }
 
         return optionConsumed;
+    }
+
+    private void showSearch(MenuItem item) {
+        if (autoCompleteTextView.getVisibility() == View.VISIBLE) {
+            autoCompleteTextView.setVisibility(View.GONE);
+            item.setIcon(android.R.drawable.ic_search_category_default);
+        } else {
+            autoCompleteTextView.setVisibility(View.VISIBLE);
+            item.setIcon(R.drawable.btn_close_normal);
+        }
     }
 
     @Override
