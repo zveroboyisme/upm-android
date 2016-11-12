@@ -28,6 +28,7 @@ import java.nio.channels.FileChannel;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
@@ -43,6 +44,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
@@ -62,6 +64,7 @@ public class FullAccountList extends AccountsList {
     public static final int RESULT_ENTER_PW = 1;
 
     public static final String CERT_FILE_NAME = "upm.cer";
+    private AdapterView.OnItemClickListener onSearchItemClickListener;
 
 
     @Override
@@ -102,14 +105,22 @@ public class FullAccountList extends AccountsList {
             setListAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, getPasswordDatabase().getAccountNames()));
             autoCompleteTextView.setAdapter(
                 new ArrayAdapter<String>(this, android.R.layout.simple_dropdown_item_1line, getPasswordDatabase().getAccountNames()));
-            autoCompleteTextView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        }
+    }
+
+    void addOnSearchItemClickListener(final MenuItem menuItem) {
+        if (onSearchItemClickListener == null) {
+            onSearchItemClickListener = new AdapterView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     FullAccountList.this.onItemClick(parent, view, position, id);
                     autoCompleteTextView.setVisibility(View.GONE);
+                    menuItem.setIcon(android.R.drawable.ic_search_category_default);
                 }
-            });
+            };
+            autoCompleteTextView.setOnItemClickListener(onSearchItemClickListener);
         }
+
     }
 
     @Override
@@ -245,8 +256,14 @@ public class FullAccountList extends AccountsList {
             autoCompleteTextView.setVisibility(View.GONE);
             item.setIcon(android.R.drawable.ic_search_category_default);
         } else {
+//            autoCompleteTextView.setShowSoftInputOnFocus(true);
+            autoCompleteTextView.setText("");
             autoCompleteTextView.setVisibility(View.VISIBLE);
+            autoCompleteTextView.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.showSoftInput(autoCompleteTextView, InputMethodManager.SHOW_IMPLICIT);
             item.setIcon(R.drawable.btn_close_normal);
+            addOnSearchItemClickListener(item);
         }
     }
 
